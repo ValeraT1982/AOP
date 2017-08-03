@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NSubstitute;
@@ -20,6 +19,8 @@ namespace AOP.Tests
         
         public interface ITestClass
         {
+            string Property { get; set; }
+
             void MethodWithVoidResult();
 
             string MethodWithStringResultAndIntParameter(int intParam);
@@ -49,6 +50,19 @@ namespace AOP.Tests
         }
 
         [Test]
+        public void ThrowException_WhenDecoratedClassNull()
+        {
+            Assert.Throws<ArgumentNullException>(() =>
+            {
+                var loggingAspect = LoggingAdvice<ITestClass>.Create(
+                    null,
+                    s => { },
+                    s => { },
+                    o => o?.ToString());
+            });
+        }
+
+        [Test]
         public void LogInfo()
         {
             var testClass = Substitute.For<ITestClass>();
@@ -67,6 +81,23 @@ namespace AOP.Tests
             Assert.IsTrue(infoMassages[0].Contains("MethodWithVoidResult"));
             Assert.IsTrue(infoMassages[1].Contains("MethodWithVoidResult"));
             Assert.AreEqual(0, errorMassages.Count);
+        }
+
+        [Test]
+        public void DoNotStop_WhenLogInfoThrowsException()
+        {
+            var testClass = Substitute.For<ITestClass>();
+            var errorMassages = new List<string>();
+            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+                testClass,
+                s => { throw new Exception(); },
+                s => errorMassages.Add(s),
+                o => o?.ToString());
+
+            loggingAspect.MethodWithVoidResult();
+
+            testClass.Received().MethodWithVoidResult();
+            Assert.AreEqual(2, errorMassages.Count);
         }
 
         [Test]
@@ -118,7 +149,7 @@ namespace AOP.Tests
         }
 
         [Test]
-        public void DoNotStop_WhenSerializerException()
+        public void DoNotStop_WhenSerializerThrowsException()
         {
             var testClass = Substitute.For<ITestClass>();
             testClass.MethodWithClassResultAndClassParameter(Arg.Any<Data>()).Returns(new Data { Prop = "Result12345" });
@@ -153,12 +184,30 @@ namespace AOP.Tests
                     s => errorMassages.Add(s),
                     o => o?.ToString());
             
-            Assert.Throws<TargetInvocationException>(() => loggingAspect.MethodWithVoidResult());
+            Assert.Throws<Exception>(() => loggingAspect.MethodWithVoidResult());
             testClass.Received().MethodWithVoidResult();
             Assert.AreEqual(1, infoMassages.Count);
             Assert.IsTrue(infoMassages[0].Contains("MethodWithVoidResult"));
             Assert.AreEqual(1, errorMassages.Count);
             Assert.IsTrue(errorMassages[0].Contains("MethodWithVoidResult"));
+        }
+
+        [Test]
+        public void DoNotStop_WhenLogErrorThrowsException()
+        {
+            var testClass = Substitute.For<ITestClass>();
+            testClass.When(t => t.MethodWithVoidResult()).Do(info => { throw new Exception(); });
+            var infoMassages = new List<string>();
+            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+                testClass,
+                s => infoMassages.Add(s),
+                s => { throw new ArgumentNullException(); },
+                o => o?.ToString());
+
+            Assert.Throws<Exception>(() => loggingAspect.MethodWithVoidResult());
+
+            testClass.Received().MethodWithVoidResult();
+            Assert.AreEqual(1, infoMassages.Count);
         }
 
         [Test]
@@ -194,7 +243,8 @@ namespace AOP.Tests
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
-                o => o?.ToString());
+                o => o?.ToString(),
+                _taskScheduler);
 
             Assert.Throws<AggregateException>(() => loggingAspect.MethodWithTaskResult().Wait());
             ReleaseContext();
@@ -240,7 +290,8 @@ namespace AOP.Tests
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
-                o => o?.ToString());
+                o => o?.ToString(),
+                _taskScheduler);
 
             Assert.Throws<AggregateException>(() => loggingAspect.MethodWithTaskStringResult().Wait());
             ReleaseContext();
@@ -255,7 +306,7 @@ namespace AOP.Tests
         public void LogInfo_WhenOutParameter()
         {
             var testClass = Substitute.For<ITestClass>();
-            string val = "s2";
+            var val = "s2";
             testClass.MethodWithOutParameter(out val)
                 .Returns(x =>
                 {
@@ -274,7 +325,7 @@ namespace AOP.Tests
 
             var result = loggingAspect.MethodWithOutParameter(out val);
 
-            string val2 = "s2";
+            var val2 = "s2";
             testClass.Received().MethodWithOutParameter(out val2);
             Assert.AreEqual(0, errorMassages.Count);
             Assert.AreEqual(2, infoMassages.Count);
@@ -288,7 +339,7 @@ namespace AOP.Tests
         public void LogInfo_WhenRefParameter()
         {
             var testClass = Substitute.For<ITestClass>();
-            string val = "s2";
+            var val = "s2";
             testClass.MethodWithRefParameter(ref val)
                 .Returns(x =>
                 {
@@ -307,7 +358,7 @@ namespace AOP.Tests
 
             var result = loggingAspect.MethodWithRefParameter(ref val);
 
-            string val2 = "s2";
+            var val2 = "s2";
             testClass.Received().MethodWithRefParameter(ref val2);
             Assert.AreEqual(0, errorMassages.Count);
             Assert.AreEqual(2, infoMassages.Count);
@@ -322,7 +373,7 @@ namespace AOP.Tests
         public void LogInfo_WhenOutParameterOfValueType()
         {
             var testClass = Substitute.For<ITestClass>();
-            int val = 2;
+            var val = 2;
             testClass.MethodWithOutParameter(out val)
                 .Returns(x =>
                 {
@@ -341,7 +392,7 @@ namespace AOP.Tests
 
             var result = loggingAspect.MethodWithOutParameter(out val);
 
-            int val2 = 2;
+            var val2 = 2;
             testClass.Received().MethodWithOutParameter(out val2);
             Assert.AreEqual(0, errorMassages.Count);
             Assert.AreEqual(2, infoMassages.Count);
@@ -355,7 +406,7 @@ namespace AOP.Tests
         public void LogInfo_WhenRefParameterOfValueType()
         {
             var testClass = Substitute.For<ITestClass>();
-            int val = 2;
+            var val = 2;
             testClass.MethodWithRefParameter(ref val)
                 .Returns(x =>
                 {
@@ -374,7 +425,7 @@ namespace AOP.Tests
 
             var result = loggingAspect.MethodWithRefParameter(ref val);
 
-            int val2 = 2;
+            var val2 = 2;
             testClass.Received().MethodWithRefParameter(ref val2);
             Assert.AreEqual(0, errorMassages.Count);
             Assert.AreEqual(2, infoMassages.Count);
@@ -389,8 +440,8 @@ namespace AOP.Tests
         public void LogInfo_WhenMixedParameters()
         {
             var testClass = Substitute.For<ITestClass>();
-            int refParam = 0;
-            string outParam = "s2";
+            var refParam = 0;
+            var outParam = "s2";
             testClass.MethodWithMixedParameter(ref refParam, out outParam, true)
                 .Returns(x =>
                 {
@@ -410,8 +461,8 @@ namespace AOP.Tests
 
             var result = loggingAspect.MethodWithMixedParameter(ref refParam, out outParam, true);
 
-            int refParam2 = 0;
-            string outParam2 = "s2";
+            var refParam2 = 0;
+            var outParam2 = "s2";
             testClass.Received().MethodWithMixedParameter(ref refParam2, out outParam2, true);
             Assert.AreEqual(0, errorMassages.Count);
             Assert.AreEqual(2, infoMassages.Count);
@@ -459,7 +510,7 @@ namespace AOP.Tests
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            Assert.Throws<TargetInvocationException>(() => loggingAspect.MethodWithException());
+            Assert.Throws<Exception>(() => loggingAspect.MethodWithException());
 
             Assert.AreEqual(1, infoMassages.Count);
             Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
@@ -480,7 +531,8 @@ namespace AOP.Tests
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
-                o => o?.ToString());
+                o => o?.ToString(),
+                _taskScheduler);
 
             Assert.Throws<AggregateException>(() => loggingAspect.AsyncMethodWithException().Wait());
 
@@ -489,7 +541,52 @@ namespace AOP.Tests
             Assert.AreEqual(1, errorMassages.Count);
             Assert.IsTrue(errorMassages[0].Contains("Class AOP.Tests.TestClass2"));
             //Only original Exception should be logged
-            Assert.IsTrue(errorMassages[0].Contains("LoggingAdvice.cs"));
+            Assert.IsFalse(errorMassages[0].Contains("LoggingAdvice.cs"));
+            Assert.IsTrue(errorMassages[0].Contains("LoggingAdviceTests.cs"));
+        }
+
+        [Test]
+        public void LogInfo_WhenPropertySet()
+        {
+            var testClass = Substitute.For<ITestClass>();
+            var errorMassages = new List<string>();
+            var infoMassages = new List<string>();
+            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+                testClass,
+                s => infoMassages.Add(s),
+                s => errorMassages.Add(s),
+                o => o?.ToString());
+
+            loggingAspect.Property = "Str1";
+
+            testClass.Received().Property = "Str1";
+            Assert.AreEqual(2, infoMassages.Count);
+            Assert.IsTrue(infoMassages[0].Contains("set_Property"));
+            Assert.IsTrue(infoMassages[1].Contains("set_Property"));
+            Assert.AreEqual(0, errorMassages.Count);
+        }
+
+        [Test]
+        public void LogInfo_WhenPropertyGet()
+        {
+            var testClass = Substitute.For<ITestClass>();
+            testClass.Property.Returns("Str1");
+            var errorMassages = new List<string>();
+            var infoMassages = new List<string>();
+            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+                testClass,
+                s => infoMassages.Add(s),
+                s => errorMassages.Add(s),
+                o => o?.ToString());
+
+            var value = loggingAspect.Property;
+
+            var tmp = testClass.Received().Property;
+            Assert.AreEqual("Str1", value);
+            Assert.AreEqual(2, infoMassages.Count);
+            Assert.IsTrue(infoMassages[0].Contains("get_Property"));
+            Assert.IsTrue(infoMassages[1].Contains("get_Property"));
+            Assert.AreEqual(0, errorMassages.Count);
         }
 
         /// <summary>
@@ -519,12 +616,12 @@ namespace AOP.Tests
 
         public void MethodWithException()
         {
-            throw new NotImplementedException();
+            throw new Exception();
         }
 
         public Task AsyncMethodWithException()
         {
-            return Task.FromException(new NotImplementedException());
+            return Task.Factory.StartNew(() => { throw new Exception(); });
         }
     }
 }

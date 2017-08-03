@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
@@ -9,9 +8,6 @@ using System.Threading.Tasks;
 
 namespace AOP
 {
-    //ToDo:
-    //Stack Trace
-    //Original exception
     public class LoggingAdvice<T> : RealProxy
     {
         private readonly T _decorated;
@@ -24,7 +20,11 @@ namespace AOP
             Func<object, string> serializeFunction, TaskScheduler loggingScheduler)
             : base(typeof(T))
         {
-            //ToDo: Check for nulls
+            if (decorated == null)
+            {
+                throw new ArgumentNullException(nameof(decorated));
+            }
+
             _decorated = decorated;
             _logInfo = logInfo;
             _logError = logError;
@@ -54,10 +54,10 @@ namespace AOP
                         {
                             LogBefore(methodCall, methodInfo);
                         }
-                        catch (Exception)
+                        catch (Exception ex)
                         {
-                            // ignored
                             //Do not stop method execution if exception
+                            LogException(ex);
                         }
 
                         var args = methodCall.Args;
@@ -72,7 +72,7 @@ namespace AOP
                            {
                                if (task.Exception != null)
                                {
-                                   LogException(methodCall, task.Exception.InnerException ?? task.Exception);
+                                   LogException(task.Exception.InnerException ?? task.Exception, methodCall);
                                }
                                else
                                {
@@ -96,29 +96,33 @@ namespace AOP
                         }
                         else
                         {
-                            LogAfter(methodCall, args, methodInfo, result);
+                            try
+                            {
+                                LogAfter(methodCall, args, methodInfo, result);
+                            }
+                            catch (Exception ex)
+                            {
+                                //Do not stop method execution if exception
+                                LogException(ex);
+                            }
                         }
 
                         return new ReturnMessage(result, args, args.Length,
                             methodCall.LogicalCallContext, methodCall);
                     }
-                    catch (Exception e)
+                    catch (Exception ex)
                     {
-                        if (e is TargetInvocationException)
+                        if (ex is TargetInvocationException)
                         {
-                            LogException(methodCall, e.InnerException);
-                        }
-                        else
-                        {
-                            LogException(methodCall, e);
-                        }
+                            LogException(ex.InnerException ?? ex, methodCall);
 
-                        return new ReturnMessage(e, methodCall);
-                    }
+                            return new ReturnMessage(ex.InnerException ?? ex, methodCall);
+                        }
+                   }
                 }
             }
 
-            throw new InvalidEnumArgumentException(nameof(msg));
+            throw new ArgumentException(nameof(msg));
         }
 
         private string GetStringValue(object obj)
@@ -143,13 +147,13 @@ namespace AOP
             }
         }
 
-        private void LogException(IMethodCallMessage methodCall, Exception exception)
+        private void LogException(Exception exception, IMethodCallMessage methodCall = null)
         {
             try
             {
                 var errorMessage = new StringBuilder();
                 errorMessage.AppendLine($"Class {_decorated.GetType().FullName}");
-                errorMessage.AppendLine($"Method {methodCall.MethodName} threw exception");
+                errorMessage.AppendLine($"Method {methodCall?.MethodName} threw exception");
                 errorMessage.AppendLine(exception.GetDescription());
 
                 _logError?.Invoke(errorMessage.ToString());
