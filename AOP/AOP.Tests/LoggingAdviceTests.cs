@@ -54,7 +54,7 @@ namespace AOP.Tests
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                var loggingAspect = LoggingAdvice<ITestClass>.Create(
+                var decorated = LoggingAdvice<ITestClass>.Create(
                     null,
                     s => { },
                     s => { },
@@ -68,13 +68,13 @@ namespace AOP.Tests
             var testClass = Substitute.For<ITestClass>();
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass, 
                 s => infoMassages.Add(s), 
                 s => errorMassages.Add(s),
                 o => o?.ToString());
             
-            loggingAspect.MethodWithVoidResult();
+            decorated.MethodWithVoidResult();
             
             testClass.Received().MethodWithVoidResult();
             Assert.AreEqual(2, infoMassages.Count);
@@ -88,13 +88,13 @@ namespace AOP.Tests
         {
             var testClass = Substitute.For<ITestClass>();
             var errorMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => { throw new Exception(); },
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            loggingAspect.MethodWithVoidResult();
+            decorated.MethodWithVoidResult();
 
             testClass.Received().MethodWithVoidResult();
             Assert.AreEqual(2, errorMassages.Count);
@@ -107,13 +107,13 @@ namespace AOP.Tests
             testClass.MethodWithClassResultAndClassParameter(Arg.Any<Data>()).Returns(new Data { Prop = "Result12345" });
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass, 
                 s => infoMassages.Add(s), 
                 s => errorMassages.Add(s), 
                 o => ((Data)o).Prop);
             
-            var result = loggingAspect.MethodWithClassResultAndClassParameter(new Data { Prop = "Parameter12345"});
+            var result = decorated.MethodWithClassResultAndClassParameter(new Data { Prop = "Parameter12345"});
             
             testClass.Received().MethodWithClassResultAndClassParameter(Arg.Any<Data>());
             Assert.AreEqual("Result12345", result.Prop);
@@ -131,13 +131,13 @@ namespace AOP.Tests
             testClass.MethodWithStringResultAndIntParameter(Arg.Any<int>()).Returns("Result12345");
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                     testClass, 
                     s => infoMassages.Add(s), 
                     s => errorMassages.Add(s),
                     o => o?.ToString());
             
-            var result = loggingAspect.MethodWithStringResultAndIntParameter(12345);
+            var result = decorated.MethodWithStringResultAndIntParameter(12345);
             
             testClass.Received().MethodWithStringResultAndIntParameter(Arg.Any<int>());
             Assert.AreEqual("Result12345", result);
@@ -155,14 +155,14 @@ namespace AOP.Tests
             testClass.MethodWithClassResultAndClassParameter(Arg.Any<Data>()).Returns(new Data { Prop = "Result12345" });
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                     testClass, 
                     s => infoMassages.Add(s), 
                     s => errorMassages.Add(s), 
                     o => { throw new Exception();});
             Data result = null;
             
-            Assert.DoesNotThrow(() => result = loggingAspect.MethodWithClassResultAndClassParameter(new Data { Prop = "Parameter12345"}));
+            Assert.DoesNotThrow(() => result = decorated.MethodWithClassResultAndClassParameter(new Data { Prop = "Parameter12345"}));
             testClass.Received().MethodWithClassResultAndClassParameter(Arg.Any<Data>());
             Assert.AreEqual("Result12345", result?.Prop);
             Assert.AreEqual(2, infoMassages.Count);
@@ -178,13 +178,13 @@ namespace AOP.Tests
             testClass.When(t => t.MethodWithVoidResult()).Do(info => { throw new Exception(); });
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                     testClass, 
                     s => infoMassages.Add(s), 
                     s => errorMassages.Add(s),
                     o => o?.ToString());
             
-            Assert.Throws<Exception>(() => loggingAspect.MethodWithVoidResult());
+            Assert.Throws<Exception>(() => decorated.MethodWithVoidResult());
             testClass.Received().MethodWithVoidResult();
             Assert.AreEqual(1, infoMassages.Count);
             Assert.IsTrue(infoMassages[0].Contains("MethodWithVoidResult"));
@@ -198,13 +198,13 @@ namespace AOP.Tests
             var testClass = Substitute.For<ITestClass>();
             testClass.When(t => t.MethodWithVoidResult()).Do(info => { throw new Exception(); });
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => { throw new ArgumentNullException(); },
                 o => o?.ToString());
 
-            Assert.Throws<Exception>(() => loggingAspect.MethodWithVoidResult());
+            Assert.Throws<Exception>(() => decorated.MethodWithVoidResult());
 
             testClass.Received().MethodWithVoidResult();
             Assert.AreEqual(1, infoMassages.Count);
@@ -217,14 +217,14 @@ namespace AOP.Tests
             testClass.MethodWithTaskResult().Returns(Task.CompletedTask);
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString(),
                 _taskScheduler);
 
-            loggingAspect.MethodWithTaskResult().Wait();
+            decorated.MethodWithTaskResult().Wait();
             ReleaseContext();
 
             testClass.Received().MethodWithTaskResult();
@@ -239,14 +239,14 @@ namespace AOP.Tests
             testClass.MethodWithTaskResult().Returns(Task.FromException(new Exception("ERROR!!!!")));
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString(),
                 _taskScheduler);
 
-            Assert.Throws<AggregateException>(() => loggingAspect.MethodWithTaskResult().Wait());
+            Assert.Throws<AggregateException>(() => decorated.MethodWithTaskResult().Wait());
             ReleaseContext();
 
             testClass.Received().MethodWithTaskResult();
@@ -262,14 +262,14 @@ namespace AOP.Tests
             testClass.MethodWithTaskStringResult().Returns("String result");
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString(),
                 _taskScheduler);
 
-            var result = loggingAspect.MethodWithTaskStringResult().Result;
+            var result = decorated.MethodWithTaskStringResult().Result;
             ReleaseContext();
 
             Assert.AreEqual("String result", result);
@@ -286,14 +286,14 @@ namespace AOP.Tests
             testClass.MethodWithTaskStringResult().Returns(Task.FromException<string>(new Exception("ERROR!!!!")));
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString(),
                 _taskScheduler);
 
-            Assert.Throws<AggregateException>(() => loggingAspect.MethodWithTaskStringResult().Wait());
+            Assert.Throws<AggregateException>(() => decorated.MethodWithTaskStringResult().Wait());
             ReleaseContext();
 
             testClass.Received().MethodWithTaskStringResult();
@@ -317,13 +317,13 @@ namespace AOP.Tests
 
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            var result = loggingAspect.MethodWithOutParameter(out val);
+            var result = decorated.MethodWithOutParameter(out val);
 
             var val2 = "s2";
             testClass.Received().MethodWithOutParameter(out val2);
@@ -350,13 +350,13 @@ namespace AOP.Tests
 
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            var result = loggingAspect.MethodWithRefParameter(ref val);
+            var result = decorated.MethodWithRefParameter(ref val);
 
             var val2 = "s2";
             testClass.Received().MethodWithRefParameter(ref val2);
@@ -384,13 +384,13 @@ namespace AOP.Tests
 
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            var result = loggingAspect.MethodWithOutParameter(out val);
+            var result = decorated.MethodWithOutParameter(out val);
 
             var val2 = 2;
             testClass.Received().MethodWithOutParameter(out val2);
@@ -417,13 +417,13 @@ namespace AOP.Tests
 
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            var result = loggingAspect.MethodWithRefParameter(ref val);
+            var result = decorated.MethodWithRefParameter(ref val);
 
             var val2 = 2;
             testClass.Received().MethodWithRefParameter(ref val2);
@@ -453,13 +453,13 @@ namespace AOP.Tests
 
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            var result = loggingAspect.MethodWithMixedParameter(ref refParam, out outParam, true);
+            var result = decorated.MethodWithMixedParameter(ref refParam, out outParam, true);
 
             var refParam2 = 0;
             var outParam2 = "s2";
@@ -484,13 +484,13 @@ namespace AOP.Tests
             var testClass = new TestClass2();
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass2>.Create(
+            var decorated = LoggingAdvice<ITestClass2>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            loggingAspect.Method();
+            decorated.Method();
 
             Assert.AreEqual(2, infoMassages.Count);
             Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
@@ -504,13 +504,13 @@ namespace AOP.Tests
             var testClass = new TestClass2();
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass2>.Create(
+            var decorated = LoggingAdvice<ITestClass2>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            Assert.Throws<Exception>(() => loggingAspect.MethodWithException());
+            Assert.Throws<Exception>(() => decorated.MethodWithException());
 
             Assert.AreEqual(1, infoMassages.Count);
             Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
@@ -527,14 +527,14 @@ namespace AOP.Tests
             var testClass = new TestClass2();
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass2>.Create(
+            var decorated = LoggingAdvice<ITestClass2>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString(),
                 _taskScheduler);
 
-            Assert.Throws<AggregateException>(() => loggingAspect.AsyncMethodWithException().Wait());
+            Assert.Throws<AggregateException>(() => decorated.AsyncMethodWithException().Wait());
 
             Assert.AreEqual(1, infoMassages.Count);
             Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
@@ -551,13 +551,13 @@ namespace AOP.Tests
             var testClass = Substitute.For<ITestClass>();
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            loggingAspect.Property = "Str1";
+            decorated.Property = "Str1";
 
             testClass.Received().Property = "Str1";
             Assert.AreEqual(2, infoMassages.Count);
@@ -573,13 +573,13 @@ namespace AOP.Tests
             testClass.Property.Returns("Str1");
             var errorMassages = new List<string>();
             var infoMassages = new List<string>();
-            var loggingAspect = LoggingAdvice<ITestClass>.Create(
+            var decorated = LoggingAdvice<ITestClass>.Create(
                 testClass,
                 s => infoMassages.Add(s),
                 s => errorMassages.Add(s),
                 o => o?.ToString());
 
-            var value = loggingAspect.Property;
+            var value = decorated.Property;
 
             var tmp = testClass.Received().Property;
             Assert.AreEqual("Str1", value);
