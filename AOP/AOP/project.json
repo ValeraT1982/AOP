@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.0-*",
 
   "dependencies": {
@@ -8,7 +8,6 @@
   "frameworks": {
     "net461": {
       "dependencies": {
-        "Unity.Interception": "2.1.505"
       }
     }
   }

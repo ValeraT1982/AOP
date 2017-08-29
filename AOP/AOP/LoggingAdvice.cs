@@ -92,7 +92,7 @@ namespace AOP
                                    LogAfter(methodCall, methodCall.Args, methodInfo, taskResult);
                                }
                            },
-                            _loggingScheduler);
+                           _loggingScheduler);
                         }
                         else
                         {
@@ -118,7 +118,7 @@ namespace AOP
 
                             return new ReturnMessage(ex.InnerException ?? ex, methodCall);
                         }
-                   }
+                    }
                 }
             }
 
