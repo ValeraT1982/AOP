@@ -7,6 +7,33 @@ using NUnit.Framework;
 
 namespace AOP.Tests
 {
+    public interface ITestClass2
+    {
+        void Method();
+
+        void MethodWithException();
+
+        Task AsyncMethodWithException();
+    }
+
+    public class TestClass2 : ITestClass2
+    {
+        public void Method()
+        {
+
+        }
+
+        public void MethodWithException()
+        {
+            throw new Exception();
+        }
+
+        public Task AsyncMethodWithException()
+        {
+            return Task.Factory.StartNew(() => { throw new Exception(); });
+        }
+    }
+
     [TestFixture]
     public class LoggingAdviceTests
     {
@@ -595,33 +622,6 @@ namespace AOP.Tests
         protected void ReleaseContext()
         {
             Task.Delay(1).Wait();
-        }
-    }
-
-    public interface ITestClass2
-    {
-        void Method();
-
-        void MethodWithException();
-
-        Task AsyncMethodWithException();
-    }
-
-    public class TestClass2 : ITestClass2
-    {
-        public void Method()
-        {
-
-        }
-
-        public void MethodWithException()
-        {
-            throw new Exception();
-        }
-
-        public Task AsyncMethodWithException()
-        {
-            return Task.Factory.StartNew(() => { throw new Exception(); });
         }
     }
 }
