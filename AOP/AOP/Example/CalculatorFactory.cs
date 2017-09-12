@@ -13,8 +13,8 @@
         {
             return LoggingAdvice <ICalculator >.Create(
                 new Calculator(),
-                s => _logger.Log("Info:" +s),
-                s => _logger.Log("Error:" +s),
+                s => _logger.Log("Info:" + s),
+                s => _logger.Log("Error:" + s),
                 o => o?.ToString());
         }
     }

@@ -1,6 +1,6 @@
 ﻿namespace AOP.Example
 {
-    public class CalculatorWithoutAop
+    public class CalculatorWithoutAop: ICalculator
     {
         private readonly ILogger _logger;
 
