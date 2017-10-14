@@ -1,4 +1,6 @@
-﻿namespace AOP.Example
+﻿using AOP.Example;
+
+namespace AOP.UsingDispatchProxy
 {
     public class CalculatorFactory
     {
@@ -11,7 +13,7 @@
 
         public ICalculator CreateCalculator()
         {
-            return LoggingAdvice <ICalculator >.Create(
+            return LoggingAdvice<ICalculator >.Create(
                 new Calculator(),
                 s => _logger.Log("Info:" + s),
                 s => _logger.Log("Error:" + s),

@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NET461
+using System;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Remoting.Messaging;
@@ -6,7 +7,7 @@ using System.Runtime.Remoting.Proxies;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AOP
+namespace AOP.UsingRealProxy
 {
     public class LoggingAdvice<T> : RealProxy
     {
@@ -209,3 +210,4 @@ namespace AOP
         }
     }
 }
+#endif

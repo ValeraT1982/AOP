@@ -1,11 +1,13 @@
-﻿using System;
+﻿#if NET461
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using AOP.UsingRealProxy;
 using NSubstitute;
 using NUnit.Framework;
 
-namespace AOP.Tests
+namespace AOP.Tests.UsingRealProxy
 {
     public interface ITestClass2
     {
@@ -520,8 +522,8 @@ namespace AOP.Tests
             decorated.Method();
 
             Assert.AreEqual(2, infoMassages.Count);
-            Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
-            Assert.IsTrue(infoMassages[1].Contains("Class AOP.Tests.TestClass2"));
+            Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.UsingRealProxy.TestClass2"));
+            Assert.IsTrue(infoMassages[1].Contains("Class AOP.Tests.UsingRealProxy.TestClass2"));
             Assert.AreEqual(0, errorMassages.Count);
         }
 
@@ -540,9 +542,9 @@ namespace AOP.Tests
             Assert.Throws<Exception>(() => decorated.MethodWithException());
 
             Assert.AreEqual(1, infoMassages.Count);
-            Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
+            Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.UsingRealProxy.TestClass2"));
             Assert.AreEqual(1, errorMassages.Count);
-            Assert.IsTrue(errorMassages[0].Contains("Class AOP.Tests.TestClass2"));
+            Assert.IsTrue(errorMassages[0].Contains("Class AOP.Tests.UsingRealProxy.TestClass2"));
             //Only original Exception should be logged
             Assert.IsFalse(errorMassages[0].Contains("LoggingAdvice.cs"));
             Assert.IsTrue(errorMassages[0].Contains("LoggingAdviceTests.cs"));
@@ -564,9 +566,9 @@ namespace AOP.Tests
             Assert.Throws<AggregateException>(() => decorated.AsyncMethodWithException().Wait());
 
             Assert.AreEqual(1, infoMassages.Count);
-            Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.TestClass2"));
+            Assert.IsTrue(infoMassages[0].Contains("Class AOP.Tests.UsingRealProxy.TestClass2"));
             Assert.AreEqual(1, errorMassages.Count);
-            Assert.IsTrue(errorMassages[0].Contains("Class AOP.Tests.TestClass2"));
+            Assert.IsTrue(errorMassages[0].Contains("Class AOP.Tests.UsingRealProxy.TestClass2"));
             //Only original Exception should be logged
             Assert.IsFalse(errorMassages[0].Contains("LoggingAdvice.cs"));
             Assert.IsTrue(errorMassages[0].Contains("LoggingAdviceTests.cs"));
@@ -625,3 +627,4 @@ namespace AOP.Tests
         }
     }
 }
+#endif
