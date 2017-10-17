@@ -14,21 +14,6 @@ namespace AOP.UsingDispatchProxy
         private Func<object, string> _serializeFunction;
         private TaskScheduler _loggingScheduler;
 
-        private void SetParameters(T decorated, Action<string> logInfo, Action<string> logError,
-            Func<object, string> serializeFunction, TaskScheduler loggingScheduler)
-        {
-            if (decorated == null)
-            {
-                throw new ArgumentNullException(nameof(decorated));
-            }
-
-            _decorated = decorated;
-            _logInfo = logInfo;
-            _logError = logError;
-            _serializeFunction = serializeFunction;
-            _loggingScheduler = loggingScheduler ?? TaskScheduler.FromCurrentSynchronizationContext();
-        }
-
         protected override object Invoke(MethodInfo targetMethod, object[] args)
         {
             if (targetMethod != null)
@@ -110,6 +95,21 @@ namespace AOP.UsingDispatchProxy
             ((LoggingAdvice<T>)proxy).SetParameters(decorated, logInfo, logError, serializeFunction, loggingScheduler);
 
             return (T)proxy;
+        }
+
+        private void SetParameters(T decorated, Action<string> logInfo, Action<string> logError,
+            Func<object, string> serializeFunction, TaskScheduler loggingScheduler)
+        {
+            if (decorated == null)
+            {
+                throw new ArgumentNullException(nameof(decorated));
+            }
+
+            _decorated = decorated;
+            _logInfo = logInfo;
+            _logError = logError;
+            _serializeFunction = serializeFunction;
+            _loggingScheduler = loggingScheduler ?? TaskScheduler.FromCurrentSynchronizationContext();
         }
 
         private string GetStringValue(object obj)
