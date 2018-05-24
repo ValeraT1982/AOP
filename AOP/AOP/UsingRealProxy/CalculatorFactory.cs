@@ -1,4 +1,4 @@
-﻿#if NET461
+﻿#if NET472
 using AOP.Example;
 
 namespace AOP.UsingRealProxy

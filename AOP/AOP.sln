@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2000
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AOP", "AOP\AOP.xproj", "{C634169F-819F-456D-88F3-2D58B10380C9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AOP", "AOP\AOP.csproj", "{C634169F-819F-456D-88F3-2D58B10380C9}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AOP.Tests", "AOP.Tests\AOP.Tests.xproj", "{E4B70C27-A66F-4413-A0ED-C69C38823FA2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AOP.Tests", "AOP.Tests\AOP.Tests.csproj", "{E4B70C27-A66F-4413-A0ED-C69C38823FA2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,5 +24,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {4191FF11-0DD7-4B26-A33D-52886209DD64}
 	EndGlobalSection
 EndGlobal
